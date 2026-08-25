@@ -1,0 +1,38 @@
+name: Feedback
+description: Architecture or product feedback
+title: "[Feedback]: "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reviewing Career Command Center. See [architecture doc](Documentation/career-platform-architecture.md) for context.
+
+  - type: textarea
+    id: area
+    attributes:
+      label: Area
+      description: What part are you commenting on?
+      placeholder: e.g. CI/CD pipeline, Cloud Run vs Vercel API, security model
+    validations:
+      required: true
+
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Feedback
+      description: Your thoughts, concerns, or suggestions
+    validations:
+      required: true
+
+  - type: dropdown
+    id: verdict
+    attributes:
+      label: Overall take
+      options:
+        - Looks good as proposed
+        - Good direction, simplify
+        - Over-engineered
+        - Missing something important
+    validations:
+      required: false

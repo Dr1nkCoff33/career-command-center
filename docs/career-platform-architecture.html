@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Career Command Center — Architecture</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --border: #2d3a4f;
+      --text: #e6edf3;
+      --muted: #8b9cb3;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --orange: #d29922;
+      --purple: #a371f7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .subtitle { color: var(--muted); font-size: 1.05rem; max-width: 700px; margin: 0 auto; }
+    .badge-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-top: 1.25rem; }
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .badge.gh { border-color: #388bfd44; color: #58a6ff; }
+    .badge.bk { border-color: #14b8a644; color: #2dd4bf; }
+    .badge.vc { border-color: #ffffff33; color: #fff; }
+    .badge.gcp { border-color: #4285f444; color: #8ab4f8; }
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+    }
+    h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--accent);
+    }
+    .section-desc { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.25rem; }
+    .mermaid { display: flex; justify-content: center; overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--muted); font-weight: 500; }
+    .questions { list-style: none; }
+    .questions li {
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .questions li:last-child { border-bottom: none; }
+    .summary-box {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+      font-size: 0.8rem;
+      line-height: 1.7;
+      white-space: pre;
+      color: var(--muted);
+    }
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    @media print {
+      body { background: #fff; color: #000; }
+      section { break-inside: avoid; border-color: #ccc; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Career Command Center</h1>
+      <p class="subtitle">
+        Architecture proposal: GitHub Actions, Buildkite, Vercel, and Google Cloud
+        powering a career portfolio + AI job-fit platform.
+      </p>
+      <div class="badge-row">
+        <span class="badge gh">GitHub Actions</span>
+        <span class="badge bk">Buildkite</span>
+        <span class="badge vc">Vercel</span>
+        <span class="badge gcp">Google Cloud</span>
+      </div>
+    </header>
+
+    <section>
+      <h2>1. Deployment topology</h2>
+      <p class="section-desc">Where each service runs and how they connect.</p>
+      <pre class="mermaid">
+flowchart LR
+    subgraph GitHub["GitHub"]
+        REPO["Career repo"]
+        GHA["GitHub Actions"]
+    end
+
+    subgraph Buildkite["Buildkite"]
+        BK["Pipeline"]
+        AGENTS["Agents GCE/GKE"]
+    end
+
+    subgraph Vercel["Vercel"]
+        NEXT["Next.js UI"]
+        PREVIEW["PR previews"]
+    end
+
+    subgraph GCP["Google Cloud"]
+        CR["Cloud Run API"]
+        CRJ["Cloud Run Jobs"]
+        SCH["Scheduler"]
+        GCS["Cloud Storage"]
+        SM["Secret Manager"]
+        AR["Artifact Registry"]
+        FS["Firestore"]
+    end
+
+    REPO --> GHA
+    GHA -->|"merge"| BK
+    BK --> AGENTS
+    AGENTS --> AR
+    AGENTS --> NEXT
+    AGENTS --> CR
+
+    NEXT --> CR
+    CR --> GCS
+    CR --> FS
+    CR --> SM
+
+    SCH --> CRJ
+    CRJ --> GCS
+
+    PREVIEW -.-> NEXT
+      </pre>
+    </section>
+
+    <section>
+      <h2>2. CI/CD pipeline</h2>
+      <p class="section-desc">PR gates in GitHub Actions; build and deploy orchestrated by Buildkite.</p>
+      <pre class="mermaid">
+flowchart TD
+    START(["Push / PR"]) --> GHA
+
+    subgraph GHA["GitHub Actions"]
+        LINT["Lint"]
+        TYPE["Type-check"]
+        PYTEST["pytest"]
+    end
+
+    GHA --> MERGE{"Merge?"}
+    MERGE -->|PR| PREVIEW["Vercel preview"]
+    MERGE -->|main| BK
+
+    subgraph BK["Buildkite"]
+        TEST["Test parallel"]
+        BUILD["Docker build"]
+        DEPLOY["Deploy staging"]
+        GATE{"Approve?"}
+        PROD["Prod deploy"]
+    end
+
+    BK --> TEST --> BUILD --> DEPLOY --> GATE --> PROD
+
+    subgraph NIGHTLY["Nightly"]
+        SCRAPE["Scrape jobs"]
+        REPORT["Write Analysis/"]
+    end
+
+    PROD --> NIGHTLY
+      </pre>
+    </section>
+
+    <section>
+      <h2>3. Analyze resume — request flow</h2>
+      <p class="section-desc">User uploads resume; Vercel calls Cloud Run for live analysis.</p>
+      <pre class="mermaid">
+sequenceDiagram
+    actor User
+    participant Vercel as Vercel
+    participant API as Cloud Run
+    participant Claude as Claude API
+    participant FC as Firecrawl
+    participant GCS as Cloud Storage
+
+    User->>Vercel: Upload resume
+    Vercel->>API: POST /analyze
+    API->>FC: Fetch jobs
+    FC-->>API: Postings
+    API->>Claude: Gap analysis
+    Claude-->>API: Scores + suggestions
+    API->>GCS: Store artifact
+    API-->>Vercel: Results JSON
+    Vercel-->>User: Charts + recommendations
+      </pre>
+    </section>
+
+    <section>
+      <h2>4. Product surfaces</h2>
+      <p class="section-desc">What ships on the public site.</p>
+      <pre class="mermaid">
+flowchart TB
+    subgraph Site["Vercel — career.yourdomain.com"]
+        HOME["Portfolio"]
+        ANALYZER["Job Fit Analyzer"]
+        TRACKER["Application Tracker"]
+        MARKET["Market Dashboard"]
+        CI["Live CI status"]
+    end
+
+    subgraph Backend["GCP backend"]
+        B1["Job scraping"]
+        B2["Semantic matching"]
+        B3["Nightly reports"]
+    end
+
+    ANALYZER --> B1
+    ANALYZER --> B2
+    MARKET --> B3
+    CI --> BK["Buildkite API"]
+      </pre>
+    </section>
+
+    <section>
+      <h2>5. Component responsibilities</h2>
+      <table>
+        <thead>
+          <tr><th>Tool</th><th>Role</th><th>When</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>GitHub Actions</td><td>Lint, test, security on PRs</td><td>Every push</td></tr>
+          <tr><td>Buildkite</td><td>Docker build, deploy, nightly jobs</td><td>Merge + schedule</td></tr>
+          <tr><td>Vercel</td><td>Next.js UI + previews</td><td>Every request</td></tr>
+          <tr><td>Cloud Run</td><td>Python analyzer API</td><td>On demand</td></tr>
+          <tr><td>Cloud Run Jobs</td><td>Batch scrape + analyze</td><td>Nightly cron</td></tr>
+          <tr><td>GCS / Firestore</td><td>Artifacts + app tracker</td><td>On write</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>6. Rollout phases</h2>
+      <table>
+        <thead>
+          <tr><th>Phase</th><th>Stack</th><th>Complexity</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>MVP</td><td>Vercel + GitHub Actions</td><td>Low</td></tr>
+          <tr><td>Phase 2</td><td>+ Cloud Run API + Secret Manager</td><td>Medium</td></tr>
+          <tr><td>Full</td><td>+ Buildkite + Scheduler + GCS + Firestore</td><td>High</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>7. Questions for reviewers</h2>
+      <ul class="questions">
+        <li>Should analysis stay on Vercel API routes or move entirely to Cloud Run?</li>
+        <li>Is Buildkite worth it vs GitHub Actions for Docker + Cloud Run deploy?</li>
+        <li>Ephemeral resume processing only, or versioned storage in GCS?</li>
+        <li>Nightly jobs: Buildkite schedule vs Cloud Scheduler → Run Job?</li>
+        <li>Highest-value surface: Analyzer, Tracker, or Market dashboard?</li>
+        <li>Any security concerns with Claude / Firecrawl integration?</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>8. One-page summary</h2>
+      <div class="summary-box">Career Command Center
+─────────────────────
+GitHub repo → GitHub Actions (PR lint/test) → Buildkite (build/deploy)
+                                                    ├→ Vercel (Next.js UI)
+                                                    └→ GCP Cloud Run (Python API)
+                                                           ├→ Claude + Firecrawl
+                                                           ├→ GCS (artifacts)
+                                                           └→ Firestore (tracker)
+
+Nightly: Cloud Scheduler → scrape jobs → update Analysis/ + market dashboard
+Public site: portfolio + job analyzer + application tracker + live CI status</div>
+    </section>
+
+    <footer>
+      Career repo architecture proposal · Carlos J Martinez · Feedback welcome
+    </footer>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#1a2332',
+        primaryTextColor: '#e6edf3',
+        primaryBorderColor: '#2d3a4f',
+        lineColor: '#58a6ff',
+        secondaryColor: '#0f1419',
+        tertiaryColor: '#1a2332'
+      },
+      flowchart: { curve: 'basis', padding: 16 },
+      sequence: { actorMargin: 40 }
+    });
+  </script>
+</body>
+</html>

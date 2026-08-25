@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+.env
+.env.local
+
+# Node
+node_modules/
+.next/
+out/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Claude cache
+.claude/cache/
+.claude/history/
+
+# Generated output (users create locally)
+output/
+
+# Secrets and credentials
+*.log
+*.key
+*_api_key*
+*credentials*
+
+# Temporary files
+*.tmp
+*.bak
+~*
+
+# Workspace
+*.code-workspace

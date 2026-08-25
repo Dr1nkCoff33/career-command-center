@@ -1,0 +1,24 @@
+.container {
+  @apply space-y-6;
+}
+
+.companyCard {
+  @apply flex flex-col items-center justify-center;
+  @apply bg-white border-gray-200;
+  @apply hover:border-primary-300;
+}
+
+.companyCard.selected {
+  @apply bg-primary-50 border-primary-500;
+  @apply text-primary-700;
+}
+
+.locationCard {
+  @apply bg-white border-gray-200;
+  @apply hover:bg-gray-50;
+}
+
+.locationCard.selected {
+  @apply bg-primary-50 border-primary-500;
+  @apply text-primary-700;
+}

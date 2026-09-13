@@ -15,7 +15,6 @@ A public portfolio and tooling project that combines an AI-powered job-fit analy
 | **[agents/](agents/)** | Semantic matching with BERTopic for resume–job alignment |
 | **[Documentation/](Documentation/)** | Architecture doc (Buildkite, GitHub Actions, Vercel, GCP) + tool README |
 | **[docs/](docs/)** | Portfolio landing page + architecture HTML viewer |
-| **[Resume/resume.md](Resume/resume.md)** | Public resume (contact details redacted) |
 
 ---
 
@@ -62,7 +61,7 @@ python job_analyzer_cli.py --role "Product Manager" --source meta
 ### Analyze a single job URL
 
 ```bash
-python analyze_single_job.py "https://example.com/job-posting" ../Resume/resume.md
+python analyze_single_job.py "https://example.com/job-posting" /path/to/your-resume.md
 ```
 
 ---

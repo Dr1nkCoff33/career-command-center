@@ -245,7 +245,7 @@ flowchart TB
 | `Tools/*.py`, `agents/` | CLI / scripts | **Cloud Run** (FastAPI wrapper) |
 | `Analysis/` | Committed markdown/JSON | **GCS** (+ optional git sync) |
 | `Resume/` | Static files in repo | **GCS** (versioned) + links from Vercel |
-| `docs/index.html` | Static portfolio | Merged into Next.js `/` |
+| _(static portfolio page)_ | Static portfolio | Merged into Next.js `/` |
 | `Dockerfile` | Local compose | Built by **Buildkite** → **Artifact Registry** → **Cloud Run** |
 
 ---
